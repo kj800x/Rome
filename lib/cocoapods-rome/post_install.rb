@@ -9,7 +9,7 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator, con
   target_label = target.cocoapods_target_label
 
   xcodebuild(sandbox, target_label, device, deployment_target, configuration)
-  xcodebuild(sandbox, target_label, simulator, deployment_target, configuration, 'ARCHS=x86_64')
+  xcodebuild(sandbox, target_label, simulator, deployment_target, configuration, 'EXCLUDED_ARCHS=arm64')
 
   spec_names = target.specs.map { |spec| [spec.root.name, spec.root.module_name] }.uniq
   spec_names.each do |root_name, module_name|
