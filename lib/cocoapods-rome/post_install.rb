@@ -8,20 +8,23 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator, con
   deployment_target = target.platform_deployment_target
   target_label = target.cocoapods_target_label
 
+  puts "Building #{configuration} #{target} for device"
   xcodebuild(sandbox, target_label, device, deployment_target, configuration)
-  xcodebuild(sandbox, target_label, simulator, deployment_target, configuration, 'EXCLUDED_ARCHS=arm64')
+  puts "Building #{configuration} #{target} for simulator"
+  xcodebuild(sandbox, target_label, simulator, deployment_target, configuration)
 
   spec_names = target.specs.map { |spec| [spec.root.name, spec.root.module_name] }.uniq
   spec_names.each do |root_name, module_name|
-    executable_path = "#{build_dir}/#{root_name}"
+    executable_path = "#{build_dir}/#{root_name}.xcframework"
     device_lib = "#{build_dir}/#{configuration}-#{device}/#{root_name}/#{module_name}.framework/#{module_name}"
     device_framework_lib = File.dirname(device_lib)
     simulator_lib = "#{build_dir}/#{configuration}-#{simulator}/#{root_name}/#{module_name}.framework/#{module_name}"
 
     next unless File.file?(device_lib) && File.file?(simulator_lib)
 
-    lipo_log = `lipo -create -output #{executable_path} #{device_lib} #{simulator_lib}`
-    puts lipo_log unless File.exist?(executable_path)
+    puts "Creating the xcframework for #{root_name}"
+    xframework_merge_log = `xcodebuild -create-xcframework -framework #{device_lib} -framework #{simulator_lib} -output #{executable_path}`
+    puts xframework_merge_log # unless File.exist?(executable_path)
 
     FileUtils.mv executable_path, device_lib, :force => true
     FileUtils.mv device_framework_lib, build_dir, :force => true
@@ -32,7 +35,7 @@ end
 
 def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil, configuration='Debug', build_settings=nil)
   args = %W(-project #{sandbox.project_path.realdirpath} -scheme #{target} -configuration #{configuration} -sdk #{sdk})
-  if build_settings 
+  if build_settings
     args.append(build_settings)
   end
   platform = PLATFORMS[sdk]
@@ -46,6 +49,16 @@ def enable_debug_information(project_path, configuration)
     config = target.build_configurations.find { |config| config.name.eql? configuration }
     config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
     config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
+  end
+  project.save
+end
+
+def configure_build_options(project_path, configuration)
+  project = Xcodeproj::Project.open(project_path)
+  project.targets.each do |target|
+    config = target.build_configurations.find { |config| config.name.eql? configuration }
+    config.build_settings['SKIP_INSTALL'] = 'NO'
+    config.build_settings['BUILD_LIBRARIES_FOR_DISTRIBUTION'] = 'YES'
   end
   project.save
 end
@@ -74,6 +87,7 @@ Pod::HooksManager.register('cocoapods-rome', :post_install) do |installer_contex
   sandbox = Pod::Sandbox.new(sandbox_root)
 
   enable_debug_information(sandbox.project_path, configuration) if enable_dsym
+  configure_build_options(sandbox.project_path, configuration)
 
   build_dir = sandbox_root.parent + 'build'
   destination = sandbox_root.parent + 'Rome'
