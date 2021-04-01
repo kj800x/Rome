@@ -8,9 +8,9 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator, con
   deployment_target = target.platform_deployment_target
   target_label = target.cocoapods_target_label
 
-  puts "Building #{configuration} #{target} for device"
+  Pod::UI.puts "Building #{configuration} #{target} for device"
   xcodebuild(sandbox, target_label, device, deployment_target, configuration)
-  puts "Building #{configuration} #{target} for simulator"
+  Pod::UI.puts "Building #{configuration} #{target} for simulator"
   xcodebuild(sandbox, target_label, simulator, deployment_target, configuration)
 
   spec_names = target.specs.map { |spec| [spec.root.name, spec.root.module_name] }.uniq
@@ -22,9 +22,9 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator, con
 
     next unless File.file?(device_lib) && File.file?(simulator_lib)
 
-    puts "Creating the xcframework for #{root_name}"
+    Pod::UI.puts "Creating the xcframework for #{root_name}"
     xframework_merge_log = `xcodebuild -create-xcframework -framework #{device_lib} -framework #{simulator_lib} -output #{executable_path}`
-    puts xframework_merge_log # unless File.exist?(executable_path)
+    Pod::UI.puts xframework_merge_log # unless File.exist?(executable_path)
 
     FileUtils.mv executable_path, device_lib, :force => true
     FileUtils.mv device_framework_lib, build_dir, :force => true
