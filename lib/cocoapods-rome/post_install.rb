@@ -23,13 +23,14 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator, con
     next unless File.file?(device_lib) && File.file?(simulator_lib)
 
     Pod::UI.puts "Creating the xcframework for #{root_name}"
+    Pod::UI.puts "Running: xcodebuild -create-xcframework -framework #{device_lib} -framework #{simulator_lib} -output #{executable_path}"
     xframework_merge_log = `xcodebuild -create-xcframework -framework #{device_lib} -framework #{simulator_lib} -output #{executable_path}`
     Pod::UI.puts xframework_merge_log # unless File.exist?(executable_path)
 
     FileUtils.mv executable_path, device_lib, :force => true
     FileUtils.mv device_framework_lib, build_dir, :force => true
-    FileUtils.rm simulator_lib if File.file?(simulator_lib)
-    FileUtils.rm device_lib if File.file?(device_lib)
+    # FileUtils.rm simulator_lib if File.file?(simulator_lib)
+    # FileUtils.rm device_lib if File.file?(device_lib)
   end
 end
 
@@ -64,7 +65,7 @@ def configure_build_options(project_path, configuration)
 end
 
 def copy_dsym_files(dsym_destination, configuration)
-  dsym_destination.rmtree if dsym_destination.directory?
+  # dsym_destination.rmtree if dsym_destination.directory?
   platforms = ['iphoneos', 'iphonesimulator']
   platforms.each do |platform|
     dsym = Pathname.glob("build/#{configuration}-#{platform}/**/*.dSYM")
@@ -94,7 +95,7 @@ Pod::HooksManager.register('cocoapods-rome', :post_install) do |installer_contex
 
   Pod::UI.puts 'Building frameworks'
 
-  build_dir.rmtree if build_dir.directory?
+  # build_dir.rmtree if build_dir.directory?
   targets = installer_context.umbrella_targets.select { |t| t.specs.any? }
   targets.each do |target|
     case target.platform_name
@@ -116,7 +117,7 @@ Pod::HooksManager.register('cocoapods-rome', :post_install) do |installer_contex
 
   Pod::UI.puts "Built #{frameworks.count} #{'frameworks'.pluralize(frameworks.count)}"
 
-  destination.rmtree if destination.directory?
+  # destination.rmtree if destination.directory?
 
   installer_context.umbrella_targets.each do |umbrella|
     umbrella.specs.each do |spec|
@@ -140,7 +141,7 @@ Pod::HooksManager.register('cocoapods-rome', :post_install) do |installer_contex
 
   copy_dsym_files(sandbox_root.parent + 'dSYM', configuration) if enable_dsym
 
-  build_dir.rmtree if build_dir.directory?
+  # build_dir.rmtree if build_dir.directory?
 
   if user_options["post_compile"]
     user_options["post_compile"].call(installer_context)
