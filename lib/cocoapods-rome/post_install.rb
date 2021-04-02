@@ -13,6 +13,9 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator, con
   Pod::UI.puts "Building #{configuration} #{target} for simulator"
   xcodebuild(sandbox, target_label, simulator, deployment_target, configuration)
 
+  Pod::UI.puts target.specs
+  exit!
+
   spec_names = target.specs.map { |spec| [spec.root.name, spec.root.module_name] }.uniq
   spec_names.each do |root_name, module_name|
     executable_path = "#{build_dir}/#{root_name}.xcframework"
@@ -41,6 +44,7 @@ def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil, configurati
   end
   platform = PLATFORMS[sdk]
   args += Fourflusher::SimControl.new.destination(:oldest, platform, deployment_target) unless platform.nil?
+  Pod::UI.puts args
   Pod::Executable.execute_command 'xcodebuild', args, true
 end
 
