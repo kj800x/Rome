@@ -30,15 +30,7 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator, con
 
     xframework_merge_log = `xcodebuild -create-xcframework -framework #{device_lib} -framework #{simulator_lib} -output #{executable_path}`
     Pod::UI.puts xframework_merge_log unless File.exist?(executable_path)
-
-
-    # FileUtils.mv executable_path, device_lib, :force => true
-    # FileUtils.mv device_framework_lib, build_dir, :force => true
-    # FileUtils.rm simulator_lib if File.file?(simulator_lib)
-    # FileUtils.rm device_lib if File.file?(device_lib)
   end
-
-  exit!
 end
 
 def xcodebuild(sandbox, target, sdk='macosx', deployment_target=nil, configuration='Debug', build_settings=nil)
@@ -118,13 +110,17 @@ Pod::HooksManager.register('cocoapods-rome', :post_install) do |installer_contex
 
   # Make sure the device target overwrites anything in the simulator build, otherwise iTunesConnect
   # can get upset about Info.plist containing references to the simulator SDK
-  frameworks = Pathname.glob("build/*/*/*.framework").reject { |f| f.to_s =~ /Pods[^.]+\.framework/ }
-  frameworks += Pathname.glob("build/*.framework").reject { |f| f.to_s =~ /Pods[^.]+\.framework/ }
+  frameworks = Pathname.glob("build/*/*/*.xcframework").reject { |f| f.to_s =~ /Pods[^.]+\.framework/ }
+  frameworks += Pathname.glob("build/*.xcframework").reject { |f| f.to_s =~ /Pods[^.]+\.framework/ }
+
+
+  Pod::UI.puts frameworks
 
   resources = []
 
   Pod::UI.puts "Built #{frameworks.count} #{'frameworks'.pluralize(frameworks.count)}"
 
+  exit!
   # destination.rmtree if destination.directory?
 
   installer_context.umbrella_targets.each do |umbrella|
