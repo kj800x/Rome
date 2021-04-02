@@ -18,18 +18,18 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator, con
   spec_names = target.specs.map { |spec| [spec.root.name, spec.root.module_name] }.uniq
   spec_names.each do |root_name, module_name|
     executable_path = "#{build_dir}/#{root_name}.xcframework"
-    device_lib = "#{build_dir}/#{configuration}-#{device}/#{root_name}/#{module_name}.framework/#{module_name}"
+    device_lib = "#{build_dir}/#{configuration}-#{device}/#{root_name}/#{module_name}.framework"
     device_framework_lib = File.dirname(device_lib)
-    simulator_lib = "#{build_dir}/#{configuration}-#{simulator}/#{root_name}/#{module_name}.framework/#{module_name}"
+    simulator_lib = "#{build_dir}/#{configuration}-#{simulator}/#{root_name}/#{module_name}.framework"
 
-    # next unless File.file?(device_lib) && File.file?(simulator_lib)
+    next unless File.file?(device_lib) && File.file?(simulator_lib)
 
     Pod::UI.puts "Creating the xcframework for #{root_name}"
     Pod::UI.puts "Running: xcodebuild -create-xcframework -framework #{device_lib} -framework #{simulator_lib} -output #{executable_path}"
-    Pod::UI.puts "XXXXXXX: xcodebuild -create-xcframework -framework /Users/kjohnson/src/HubSpotReactNativeCore/ios/build/Debug-iphoneos/React-Core/React.framework -framework /Users/kjohnson/src/HubSpotReactNativeCore/ios/build/Debug-iphonesimulator/React-Core/React.framework -output React-Core.xcframework"
+    Pod::UI.puts "Expectd: xcodebuild -create-xcframework -framework /Users/kjohnson/src/HubSpotReactNativeCore/ios/build/Debug-iphoneos/React-Core/React.framework -framework /Users/kjohnson/src/HubSpotReactNativeCore/ios/build/Debug-iphonesimulator/React-Core/React.framework -output React-Core.xcframework"
 
-    # xframework_merge_log = `xcodebuild -create-xcframework -framework #{device_lib} -framework #{simulator_lib} -output #{executable_path}`
-    # Pod::UI.puts xframework_merge_log # unless File.exist?(executable_path)
+    xframework_merge_log = `xcodebuild -create-xcframework -framework #{device_lib} -framework #{simulator_lib} -output #{executable_path}`
+    Pod::UI.puts xframework_merge_log unless File.exist?(executable_path)
 
 
     # FileUtils.mv executable_path, device_lib, :force => true
