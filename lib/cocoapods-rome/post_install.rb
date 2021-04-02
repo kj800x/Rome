@@ -14,7 +14,6 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator, con
   # xcodebuild(sandbox, target_label, simulator, deployment_target, configuration)
 
   Pod::UI.puts target.specs
-  exit!
 
   spec_names = target.specs.map { |spec| [spec.root.name, spec.root.module_name] }.uniq
   spec_names.each do |root_name, module_name|
