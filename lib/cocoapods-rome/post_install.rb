@@ -22,7 +22,7 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator, con
     device_framework_lib = File.dirname(device_lib)
     simulator_lib = "#{build_dir}/#{configuration}-#{simulator}/#{root_name}/#{module_name}.framework"
 
-    next unless File.file?(device_lib) && File.file?(simulator_lib)
+    next unless File.directory?(device_lib) && File.directory?(simulator_lib)
 
     Pod::UI.puts "Creating the xcframework for #{root_name}"
     Pod::UI.puts "Running: xcodebuild -create-xcframework -framework #{device_lib} -framework #{simulator_lib} -output #{executable_path}"
