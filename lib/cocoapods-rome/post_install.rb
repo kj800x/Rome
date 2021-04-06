@@ -149,7 +149,7 @@ Pod::HooksManager.register('cocoapods-rome', :post_install) do |installer_contex
   destination = sandbox_root.parent + 'Rome'
   destination.rmtree if destination.directory?
 
-  if configuation == "Both"
+  if configuration == "Both"
     buildForConfiguration("Release", enable_dsym, sandbox_root, sandbox, installer_context)
     buildForConfiguration("Debug", enable_dsym, sandbox_root, sandbox, installer_context)
   else
