@@ -84,7 +84,7 @@ def buildForConfiguration(configuration, enable_dsym, sandbox_root, sandbox, ins
   build_dir = sandbox_root.parent + 'build'
   destination = sandbox_root.parent + "Rome/#{configuration}"
 
-  Pod::UI.puts "Building #{Configuration} frameworks"
+  Pod::UI.puts "Building #{configuration} frameworks"
 
   build_dir.rmtree if build_dir.directory?
   targets = installer_context.umbrella_targets.select { |t| t.specs.any? }
