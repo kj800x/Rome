@@ -9,9 +9,9 @@ def build_for_iosish_platform(sandbox, build_dir, target, device, simulator, con
   target_label = target.cocoapods_target_label
 
   Pod::UI.puts "Building #{configuration} #{target} for device"
-  # xcodebuild(sandbox, target_label, device, deployment_target, configuration)
+  xcodebuild(sandbox, target_label, device, deployment_target, configuration)
   Pod::UI.puts "Building #{configuration} #{target} for simulator"
-  # xcodebuild(sandbox, target_label, simulator, deployment_target, configuration)
+  xcodebuild(sandbox, target_label, simulator, deployment_target, configuration)
 
   Pod::UI.puts target.specs
 
@@ -103,7 +103,6 @@ def buildForConfiguration(configuration, enable_dsym, sandbox_root, sandbox, ins
   # can get upset about Info.plist containing references to the simulator SDK
   frameworks = Pathname.glob("build/*/*/*.xcframework").reject { |f| f.to_s =~ /Pods[^.]+\.framework/ }
   frameworks += Pathname.glob("build/*.xcframework").reject { |f| f.to_s =~ /Pods[^.]+\.framework/ }
-
 
   Pod::UI.puts frameworks
 
