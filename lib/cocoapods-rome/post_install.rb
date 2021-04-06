@@ -77,25 +77,16 @@ def copy_dsym_files(dsym_destination, configuration)
   end
 end
 
-Pod::HooksManager.register('cocoapods-rome', :post_install) do |installer_context, user_options|
-  enable_dsym = user_options.fetch('dsym', true)
-  configuration = user_options.fetch('configuration', 'Debug')
-  if user_options["pre_compile"]
-    user_options["pre_compile"].call(installer_context)
-  end
-
-  sandbox_root = Pathname(installer_context.sandbox_root)
-  sandbox = Pod::Sandbox.new(sandbox_root)
-
+def buildForConfiguration(configuration, enable_dsym, sandbox_root, sandbox, installer_context)
   enable_debug_information(sandbox.project_path, configuration) if enable_dsym
   configure_build_options(sandbox.project_path, configuration)
 
   build_dir = sandbox_root.parent + 'build'
-  destination = sandbox_root.parent + 'Rome'
+  destination = sandbox_root.parent + "Rome/#{configuration}"
 
-  Pod::UI.puts 'Building frameworks'
+  Pod::UI.puts "Building #{Configuration} frameworks"
 
-  # build_dir.rmtree if build_dir.directory?
+  build_dir.rmtree if build_dir.directory?
   targets = installer_context.umbrella_targets.select { |t| t.specs.any? }
   targets.each do |target|
     case target.platform_name
@@ -120,9 +111,6 @@ Pod::HooksManager.register('cocoapods-rome', :post_install) do |installer_contex
 
   Pod::UI.puts "Built #{frameworks.count} #{'frameworks'.pluralize(frameworks.count)}"
 
-  exit!
-  # destination.rmtree if destination.directory?
-
   installer_context.umbrella_targets.each do |umbrella|
     umbrella.specs.each do |spec|
       consumer = spec.consumer(umbrella.platform_name)
@@ -145,7 +133,28 @@ Pod::HooksManager.register('cocoapods-rome', :post_install) do |installer_contex
 
   copy_dsym_files(sandbox_root.parent + 'dSYM', configuration) if enable_dsym
 
-  # build_dir.rmtree if build_dir.directory?
+  build_dir.rmtree if build_dir.directory?
+end
+
+Pod::HooksManager.register('cocoapods-rome', :post_install) do |installer_context, user_options|
+  enable_dsym = user_options.fetch('dsym', true)
+  configuration = user_options.fetch('configuration', 'Debug')
+  if user_options["pre_compile"]
+    user_options["pre_compile"].call(installer_context)
+  end
+
+  sandbox_root = Pathname(installer_context.sandbox_root)
+  sandbox = Pod::Sandbox.new(sandbox_root)
+
+  destination = sandbox_root.parent + 'Rome'
+  destination.rmtree if destination.directory?
+
+  if configuation == "Both"
+    buildForConfiguration("Release", enable_dsym, sandbox_root, sandbox, installer_context)
+    buildForConfiguration("Debug", enable_dsym, sandbox_root, sandbox, installer_context)
+  else
+    buildForConfiguration(configuration, enable_dsym, sandbox_root, sandbox, installer_context)
+  end
 
   if user_options["post_compile"]
     user_options["post_compile"].call(installer_context)
